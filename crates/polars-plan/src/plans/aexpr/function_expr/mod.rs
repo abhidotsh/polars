@@ -1206,11 +1206,12 @@ impl IRFunctionExpr {
             F::SetSortedFlag(_) => FunctionOptions::elementwise(),
             #[cfg(feature = "ffi_plugin")]
             F::FfiPlugin { flags, .. } => *flags,
-            F::MaxHorizontal | F::MinHorizontal => FunctionOptions::elementwise().with_flags(|f| {
-                f | FunctionFlags::INPUT_WILDCARD_EXPANSION | FunctionFlags::ALLOW_RENAME
-            }),
+            F::MaxHorizontal | F::MinHorizontal => FunctionOptions::elementwise()
+                .with_flags(|f| f | FunctionFlags::INPUT_WILDCARD_EXPANSION | FunctionFlags::ALLOW_RENAME)
+                .with_supertyping(Default::default()),
             F::MeanHorizontal { .. } | F::SumHorizontal { .. } => FunctionOptions::elementwise()
-                .with_flags(|f| f | FunctionFlags::INPUT_WILDCARD_EXPANSION),
+                .with_flags(|f| f | FunctionFlags::INPUT_WILDCARD_EXPANSION)
+                .with_supertyping(Default::default()),
 
             F::FoldHorizontal { returns_scalar, .. }
             | F::ReduceHorizontal { returns_scalar, .. } => FunctionOptions::groupwise()

@@ -435,6 +435,25 @@ def test_horizontal_broadcasting() -> None:
 def test_horizontal_untyped_literal_cast_regression_26723() -> None:
     df = pl.DataFrame({"a": [1, 2], "b": [1, 2]}, schema={"a": pl.Int8, "b": pl.Int16})
 
+    expected_no_cast = pl.DataFrame(
+        {
+            "a": [1, 2],
+            "b": [1, 2],
+            "sum_a": [1, 2],
+            "max_a": [1, 2],
+            "min_a": [0, 0],
+            "sum_b": [1, 2],
+        },
+        schema={
+            "a": pl.Int8,
+            "b": pl.Int16,
+            "sum_a": pl.Int8,
+            "max_a": pl.Int8,
+            "min_a": pl.Int8,
+            "sum_b": pl.Int16,
+        },
+    )
+
     expected = pl.DataFrame(
         {
             "a": [1, 2],
@@ -453,6 +472,26 @@ def test_horizontal_untyped_literal_cast_regression_26723() -> None:
             "sum_b": pl.Int8,
         },
     )
+
+    out_no_cast = df.with_columns(
+        sum_a=pl.sum_horizontal("a", 0),
+        max_a=pl.max_horizontal("a", 0),
+        min_a=pl.min_horizontal("a", 0),
+        sum_b=pl.sum_horizontal("b", 0),
+    )
+    assert_frame_equal(out_no_cast, expected_no_cast)
+
+    out_lf_no_cast = (
+        df.lazy()
+        .with_columns(
+            sum_a=pl.sum_horizontal("a", 0),
+            max_a=pl.max_horizontal("a", 0),
+            min_a=pl.min_horizontal("a", 0),
+            sum_b=pl.sum_horizontal("b", 0),
+        )
+        .collect()
+    )
+    assert_frame_equal(out_lf_no_cast, expected_no_cast)
 
     out_expr_cast = df.with_columns(
         sum_a=pl.sum_horizontal("a", 0).cast(pl.Int8),
